@@ -44,3 +44,7 @@ func Available(port int) bool {
 	defer l.Close()
 	return true
 }
+
+func WithColon(port int) string {
+	return fmt.Sprintf(":%d", port)
+}

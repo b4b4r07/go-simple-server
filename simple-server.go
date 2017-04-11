@@ -1,5 +1,3 @@
-// All-rounder for demo server
-// TODO
 package main
 
 import (
@@ -12,11 +10,19 @@ import (
 	"github.com/b4b4r07/go-simple-server/port"
 )
 
+var (
+	json = flag.Bool("json", false, "Output the response as JSON")
+)
+
 func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, World")
+	msg := "Hello, World"
+	if *json {
+		msg = fmt.Sprintf(`{"message": "%s"}`, msg)
+	}
+	fmt.Fprintf(w, msg)
 }
 
-func logging(handler http.Handler) http.Handler {
+func logger(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf(r.URL.Path)
 		handler.ServeHTTP(w, r)
@@ -26,13 +32,18 @@ func logging(handler http.Handler) http.Handler {
 func main() {
 	flag.Parse()
 	http.HandleFunc("/", handler)
+
 	n := port.Get(8000, 8080)
+	host := "localhost" + port.WithColon(n)
+
+	// save host to the system clipboard
 	if !clipboard.Unsupported {
-		err := clipboard.WriteAll(fmt.Sprintf("curl localhost:%d", n))
+		err := clipboard.WriteAll(host)
 		if err != nil {
 			panic(err)
 		}
 	}
-	log.Printf("Serving %d...", n)
-	http.ListenAndServe(fmt.Sprintf(":%d", n), logging(http.DefaultServeMux))
+
+	log.Printf("Start to serve %s", host)
+	http.ListenAndServe(port.WithColon(n), logger(http.DefaultServeMux))
 }
