@@ -4,20 +4,18 @@ package port
 import (
 	"fmt"
 	"net"
-	"strconv"
 )
 
-const ANY_PORT = 0
+const RANDOM = 0
 
 func listen(port int) *net.TCPListener {
-	var l *net.TCPListener
 	host := fmt.Sprintf("localhost:%d", port)
 	addr, err := net.ResolveTCPAddr("tcp", host)
 	if err != nil {
 		panic(err)
 	}
 
-	l, err = net.ListenTCP("tcp", addr)
+	l, err := net.ListenTCP("tcp", addr)
 	if err != nil {
 		panic(err)
 	}
@@ -25,35 +23,15 @@ func listen(port int) *net.TCPListener {
 	return l
 }
 
-// TODO
-func Get(ports ...interface{}) int {
-	var (
-		l   *net.TCPListener
-		n   int
-		err error
-		ok  bool
-	)
+func Get(ports ...int) int {
+	var l *net.TCPListener
 	for _, port := range ports {
-		switch port.(type) {
-		case int:
-			n = port.(int)
-		case string:
-			n, err = strconv.Atoi(port.(string))
-			if err != nil {
-				continue
-			}
-		default:
-			continue
+		if Available(port) {
+			l = listen(port)
 		}
-		ok = true
-		if !Available(n) {
-			ok = false
-			continue
-		}
-		l = listen(n)
 	}
-	if len(ports) == 0 || !ok {
-		l = listen(ANY_PORT)
+	if l == nil {
+		l = listen(RANDOM)
 	}
 	return l.Addr().(*net.TCPAddr).Port
 }
