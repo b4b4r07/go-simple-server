@@ -3,10 +3,27 @@ package port
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"strconv"
 )
+
+const ANY_PORT = 0
+
+func listen(port int) *net.TCPListener {
+	var l *net.TCPListener
+	host := fmt.Sprintf("localhost:%d", port)
+	addr, err := net.ResolveTCPAddr("tcp", host)
+	if err != nil {
+		panic(err)
+	}
+
+	l, err = net.ListenTCP("tcp", addr)
+	if err != nil {
+		panic(err)
+	}
+	defer l.Close()
+	return l
+}
 
 // TODO
 func Get(ports ...interface{}) int {
@@ -33,33 +50,10 @@ func Get(ports ...interface{}) int {
 			ok = false
 			continue
 		}
-
-		host := fmt.Sprintf("localhost:%d", n)
-		addr, err := net.ResolveTCPAddr("tcp", host)
-		if err != nil {
-			log.Printf("skip %d ...", n)
-			continue
-		}
-
-		l, err = net.ListenTCP("tcp", addr)
-		if err != nil {
-			log.Printf("skip %d ...", n)
-			continue
-		}
-		defer l.Close()
+		l = listen(n)
 	}
 	if len(ports) == 0 || !ok {
-		host := fmt.Sprintf("localhost:%d", 0)
-		addr, err := net.ResolveTCPAddr("tcp", host)
-		if err != nil {
-			panic(err)
-		}
-
-		l, err = net.ListenTCP("tcp", addr)
-		if err != nil {
-			panic(err)
-		}
-		defer l.Close()
+		l = listen(ANY_PORT)
 	}
 	return l.Addr().(*net.TCPAddr).Port
 }

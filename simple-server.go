@@ -26,7 +26,7 @@ func logging(handler http.Handler) http.Handler {
 func main() {
 	flag.Parse()
 	http.HandleFunc("/", handler)
-	n := port.Get(58751)
+	n := port.Get(8000, 8080)
 	if !clipboard.Unsupported {
 		err := clipboard.WriteAll(fmt.Sprintf("curl localhost:%d", n))
 		if err != nil {
@@ -34,6 +34,5 @@ func main() {
 		}
 	}
 	log.Printf("Serving %d...", n)
-	// TODO: access log to stdout
 	http.ListenAndServe(fmt.Sprintf(":%d", n), logging(http.DefaultServeMux))
 }
