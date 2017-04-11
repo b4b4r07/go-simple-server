@@ -23,25 +23,10 @@ func logging(handler http.Handler) http.Handler {
 	})
 }
 
-var (
-	// open browser
-
-	// TODO
-	portN = flag.String("port", "", "port e.g. 8000,8080")
-
-	// TODO json?
-
-	// TODO sleep?
-)
-
 func main() {
 	flag.Parse()
 	http.HandleFunc("/", handler)
-	var n int
-	n = port.Get()
-	if *portN != "" {
-		n = port.Get(interface{}(*portN))
-	}
+	n := port.Get(58751)
 	if !clipboard.Unsupported {
 		err := clipboard.WriteAll(fmt.Sprintf("curl localhost:%d", n))
 		if err != nil {
