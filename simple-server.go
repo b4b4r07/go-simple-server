@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/atotto/clipboard"
 	"github.com/b4b4r07/go-simple-server/port"
@@ -33,7 +34,15 @@ func main() {
 	var n int
 	n = port.Get()
 	if *portN != "" {
-		n = port.Get(*portN)
+		var p []interface{}
+		if strings.Contains(*portN, ",") {
+			for _, i := range strings.Split(*portN, ",") {
+				p = append(p, interface{}(i))
+			}
+		} else {
+			p = append(p, interface{}(*portN))
+		}
+		n = port.Get(p...)
 	}
 	if !clipboard.Unsupported {
 		err := clipboard.WriteAll(fmt.Sprintf("curl localhost:%d", n))
@@ -43,9 +52,5 @@ func main() {
 	}
 	log.Printf("Serving %d...", n)
 	// TODO: access log to stdout
-	// http.ListenAndServe(fmt.Sprintf(":%d", n), nil)
-	http.Serve(l, hlog.Wrap(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", "no-store")
-		http.ServeFile(w, r, "."+r.URL.Path)
-	}))
+	http.ListenAndServe(fmt.Sprintf(":%d", n), nil)
 }
